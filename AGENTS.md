@@ -12,7 +12,8 @@ Vanilla HTML5 canvas Asteroids clone. No package manager, dependencies, bundler,
 
 - `index.html` owns the canvas size (`800x600`) and loads `game.js` as a classic script. `game.js` hardcodes the same `W`/`H`; update both files if resizing.
 - All game logic lives in `game.js` as top-level globals/classes. No modules, imports, or exports.
-- Asteroid tuning tables (`RADII`, `SPEEDS`, `POINTS`) are indexed by size: `1` small, `2` medium, `3` large. New large asteroids spawn at size 3; `split()` decrements the size.
+- `RADII`, `SPEEDS`, `POINTS` are indexed by asteroid size: `1` small, `2` medium, `3` large. New asteroids spawn at size 3; `split()` decrements the size.
+- Power-ups: `PowerUp` class + global `powerups` array; drop is rolled in the bullet-vs-asteroid loop, activation lives on `Ship.speedBoost` (deaths and `reset()` clear it). Tuning constants are grouped near the top (`POWERUP_*`, `SPEED_MULTIPLIER`).
 
 ## Conventions and gotchas
 
