@@ -464,6 +464,16 @@ function drawHUD() {
     ctx.fillStyle = '#00e5ff';
     ctx.textAlign = 'left';
     ctx.fillText(`VELOCIDAD  ${ship.speedBoost.toFixed(1)}s`, 14, 48);
+
+    // Barra de progreso del efecto
+    const BAR_W    = 106;
+    const frac     = Math.min(ship.speedBoost / POWERUP_DURATION, 1);
+    const urgent   = ship.speedBoost < 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth   = 1;
+    ctx.strokeRect(14, 54, BAR_W, 4);
+    ctx.fillStyle = urgent ? '#ff8255' : '#00e5ff';
+    ctx.fillRect(15, 55, (BAR_W - 2) * frac, 3);
   }
 }
 
