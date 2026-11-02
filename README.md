@@ -29,6 +29,7 @@ Luego visita `http://localhost:3000`.
 | `←` `→`   | Rotar nave |
 | `↑`       | Propulsar  |
 | `Espacio` | Disparar   |
+| `S`       | Cambiar skin de la nave |
 
 ## Puntuación
 
@@ -46,3 +47,4 @@ Luego visita `http://localhost:3000`.
 - Partículas de explosión al destruir asteroides
 - Power-up **Velocidad**: al destruir un asteroide hay un 15% de probabilidad de que suelte un rayo celeste; al recogerlo la propulsión de la nave se duplica durante 5 segundos (se puede renovar recogiendo otro)
 - **Estrella fugaz**: asteroide especial dorado; en cada nivel hay un 50% de probabilidad de que uno de los iniciales lo sea, y nunca pasan más de 3 niveles seguidos sin que aparezca (el HUD avisa con un mensaje parpadeante). Se mueve mucho más rápido, no se divide, otorga 200 puntos y desaparece sola a los 10 segundos (parpadea en los últimos 2.5 s)
+- **4 skins de nave**: Clásica, Interceptor, Fénix y OVNI. Pulsa `S` para ciclar entre ellas (funciona en cualquier momento, incluso en el Game Over). La elección se guarda en el navegador (`localStorage`) y se mantiene al recargar. Todas comparten el mismo hitbox, así que la dificultad no cambia.
