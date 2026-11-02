@@ -14,7 +14,7 @@ Vanilla HTML5 canvas Asteroids clone. No package manager, dependencies, bundler,
 - All game logic lives in `game.js` as top-level globals/classes. No modules, imports, or exports.
 - `RADII`, `SPEEDS`, `POINTS` are indexed by asteroid size: `1` small, `2` medium, `3` large. New asteroids spawn at size 3; `split()` decrements the size.
 - Shooting star: `ShootingStar extends Asteroid` — size 2, fast, `ttl = SHOOTING_STAR_LIFETIME` (10s), no split, 200 points via `this.points`. Spawn is rolled per level in `spawnAsteroids()` (50% chance, forced after `SHOOTING_STAR_GAP` levels without one via `levelsSinceStar`); expired ones are filtered right after asteroid `update()` (both `playing` and `dead` branches), so do not remove that filter. `drawHUD()` shows a flashing warning while one is in play.
-- Power-ups: `PowerUp` class + global `powerups` array; drop is rolled in the bullet-vs-asteroid loop, activation lives on `Ship.speedBoost` (deaths and `reset()` clear it). Tuning constants are grouped near the top (`POWERUP_*`, `SPEED_MULTIPLIER`).
+- Power-ups: `PowerUp` class + global `powerups` array, with a `type` field (`'speed'` / `'triple'`, chosen 50/50 when the 15% drop roll succeeds). Activation lives on `Ship.speedBoost` and `Ship.tripleShot` (deaths and `reset()` clear both); while `tripleShot` is active, `tryShoot()` returns a 3-bullet fan spread (±`TRIPLE_SHOT_SPREAD`, 60° total). Tuning constants are grouped near the top (`POWERUP_*`, `SPEED_MULTIPLIER`, `TRIPLE_SHOT_SPREAD`).
 
 ## Conventions and gotchas
 
