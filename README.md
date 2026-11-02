@@ -4,7 +4,7 @@ Clon del clásico arcade **Asteroids** implementado en canvas HTML5 puro, sin de
 
 ## Descripción
 
-Nave espacial en un campo de asteroides con envolvimiento de bordes (el espacio es toroidal). Destruye asteroides para sumar puntos: los grandes se parten en medianos, los medianos en pequeños. A veces aparece una estrella fugaz, rápida y fugaz, y también hay un power-up de velocidad.
+Nave espacial en un campo de asteroides con envolvimiento de bordes (el espacio es toroidal). Destruye asteroides para sumar puntos: los grandes se parten en medianos, los medianos en pequeños. A veces aparece una estrella fugaz, rápida y fugaz, y también hay power-ups de velocidad y escudo.
 
 ## Tecnologías
 
@@ -44,5 +44,6 @@ Luego visita `http://localhost:3000`.
 - 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
 - Asteroides se parten en fragmentos más pequeños al ser destruidos
 - Partículas de explosión al destruir asteroides
-- Power-up **Velocidad**: al destruir un asteroide hay un 15% de probabilidad de que suelte un rayo celeste; al recogerlo la propulsión de la nave se duplica durante 5 segundos (se puede renovar recogiendo otro)
+- Power-up **Velocidad**: al destruir un asteroide hay un 15% de probabilidad de que suelte un power-up (rayo celeste o escudo verde, al azar); al recoger el rayo la propulsión de la nave se duplica durante 5 segundos (se puede renovar recogiendo otro)
+- **Power-up Escudo**: al recogerlo la nave se envuelve en una burbuja verde punteada durante 6 segundos (parpadea en el último 1,5 s). Los asteroides y estrellas fugaces que tocan la burbuja se destruyen sin dañar la nave: dan sus puntos, explotan, se parten y pueden soltar otro power-up. Morir, pasar de nivel o reiniciar cancela el efecto
 - **Estrella fugaz**: asteroide especial dorado; en cada nivel hay un 50% de probabilidad de que uno de los iniciales lo sea, y nunca pasan más de 3 niveles seguidos sin que aparezca (el HUD avisa con un mensaje parpadeante). Se mueve mucho más rápido, no se divide, otorga 200 puntos y desaparece sola a los 10 segundos (parpadea en los últimos 2.5 s)
