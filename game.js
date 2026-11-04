@@ -91,6 +91,8 @@ const SKIN_KEY = 'asteroids.skin';
 
 // Cada skin dibuja su silueta en coordenadas locales (nariz hacia +X) con la
 // misma escala que la nave clásica: no cambia el hitbox (radius 12, NOSE 21).
+// Excepciones: `scale` agranda la silueta (y su hitbox por igual); `scoreMult`
+// multiplica los puntos mientras esa skin esté activa.
 const SKINS = [
   {
     id: 'clasica',
@@ -133,6 +135,17 @@ const SKINS = [
     ],
     flame: { x: -15, half: 3.5, color: 'rgba(199, 125, 255, 0.85)' },
   },
+  {
+    id: 'gigante',
+    name: 'GIGANTE',
+    color: '#b45cf3',          // morada
+    scale: 2,                  // el doble de grande que la clásica
+    scoreMult: 2,              // el doble de puntos mientras esté activa
+    paths: [
+      { pts: [[20, 0], [-12, -9], [-7, 0], [-12, 9]], closed: true },
+    ],
+    flame: { x: -8, half: 4, color: 'rgba(180, 92, 243, 0.85)' },
+  },
 ];
 
 let currentSkinId = loadSkin();
@@ -152,6 +165,14 @@ function saveSkin() {
 
 function getSkin() {
   return SKINS.find(s => s.id === currentSkinId) || SKINS[0];
+}
+
+function getSkinScale() {
+  return getSkin().scale || 1;
+}
+
+function getSkinScoreMult() {
+  return getSkin().scoreMult || 1;
 }
 
 function cycleSkin() {
@@ -307,7 +328,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = 12 * getSkinScale();
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -348,7 +369,7 @@ class Ship {
   tryShoot() {
     if (this.shootCooldown > 0 || this.dead) return [];
     this.shootCooldown = 0.2;
-    const NOSE = 21;
+    const NOSE = 21 * getSkinScale();
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
 
@@ -369,19 +390,20 @@ class Ship {
 
     if (!blinking) {
       const skin = getSkin();
+      const sk   = getSkinScale();
 
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle);
-      drawShipShape(skin);
+      drawShipShape(skin, sk, 1.5 * sk);
 
       // Llama del propulsor
       if (this.thrusting && Math.random() > 0.35) {
         const f = skin.flame;
         ctx.beginPath();
-        ctx.moveTo(f.x, -f.half);
-        ctx.lineTo(f.x - rand(6, 14), 0);
-        ctx.lineTo(f.x,  f.half);
+        ctx.moveTo(f.x * sk, -f.half * sk);
+        ctx.lineTo(f.x * sk - rand(6, 14) * sk, 0);
+        ctx.lineTo(f.x * sk,  f.half * sk);
         ctx.strokeStyle = f.color;
         ctx.stroke();
       }
@@ -577,7 +599,7 @@ function explode(x, y, count = 8) {
 // puntos, explosión, posible drop y división. Devuelve los fragmentos.
 function destroyAsteroid(a) {
   a.dead = true;
-  score += a.points;
+  score += a.points * getSkinScoreMult();   // x2 con la nave GIGANTE
   explode(a.x, a.y, a.size * 5);
   if (Math.random() < POWERUP_DROP_CHANCE)
     powerups.push(new PowerUp(a.x, a.y, POWERUP_KINDS[randInt(0, POWERUP_KINDS.length - 1)]));
@@ -600,7 +622,10 @@ function killShip() {
 function update(dt) {
   // Cambiar skin: se procesa antes del retorno por estado, para que funcione
   // también en 'dead' y 'gameover'
-  if (pressed('KeyS')) cycleSkin();
+  if (pressed('KeyS')) {
+    cycleSkin();
+    if (ship) ship.radius = 12 * getSkinScale();
+  }
   skinToast = Math.max(0, skinToast - dt);
 
   if (state === 'gameover') {
@@ -690,7 +715,9 @@ function drawLifeIcon(x, y) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-Math.PI / 2);
-  drawShipShape(getSkin(), 0.5, 1.2);
+  // Escala inversa para que todos los íconos de vidas midan lo mismo,
+  // sin importar el tamaño de la skin activa
+  drawShipShape(getSkin(), 0.5 / getSkinScale(), 1.2);
   ctx.restore();
 }
 
@@ -745,11 +772,12 @@ function drawHUD() {
     ctx.fillText('★ ESTRELLA FUGAZ', W / 2, 48);
   }
 
-  // Skin activa
+  // Skin activa (con indicador de multiplicador de puntos si aplica)
+  const mult = getSkinScoreMult();
   ctx.fillStyle = skinToast > 0 ? '#fff' : 'rgba(255,255,255,0.45)';
   ctx.font      = '13px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText(`PIEL: ${getSkin().name}  ·  S CAMBIAR`, 14, H - 16);
+  ctx.fillText(`PIEL: ${getSkin().name}${mult > 1 ? ` PUNTOS x${mult}` : ''}  ·  S CAMBIAR`, 14, H - 16);
 }
 
 function drawOverlay(title, sub, hint) {
@@ -780,9 +808,12 @@ function draw() {
 
   drawHUD();
 
-  if (state === 'gameover')
+  if (state === 'gameover') {
+    const skin = getSkin();
+    const m    = getSkinScoreMult();
     drawOverlay('GAME OVER', `PUNTAJE: ${score}   —   ESPACIO PARA REINICIAR`,
-      `S — CAMBIAR PIEL  (${getSkin().name})`);
+      `S — CAMBIAR PIEL  (${skin.name}${m > 1 ? `, PUNTOS x${m}` : ''})`);
+  }
 }
 
 // ── Loop principal ────────────────────────────────────────────────────────────
