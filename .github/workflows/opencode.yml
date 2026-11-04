@@ -17,7 +17,7 @@ jobs:
       id-token: write      # Para autenticación segura (OIDC)
       contents: read      # Para crear/modificar archivos y ramas
       pull-requests: read   # Para abrir Pull Requests
-      issues: write        # Para comentar en los issues
+      issues: read       # Para comentar en los issues
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
