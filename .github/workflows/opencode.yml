@@ -20,9 +20,9 @@ jobs:
       issues: read       # Para comentar en los issues
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          #fetch-depth: 1
           persist-credentials: false
 
       - name: Run opencode
