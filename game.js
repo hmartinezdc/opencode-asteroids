@@ -133,7 +133,22 @@ const SKINS = [
     ],
     flame: { x: -15, half: 3.5, color: 'rgba(199, 125, 255, 0.85)' },
   },
+  // Nave morada el doble de grande (path, llama y hitbox escalados x2):
+  // a cambio, el jugador gana el doble de puntos mientras la usa.
+  {
+    id: 'colosal',
+    name: 'COLOSAL',
+    color: '#a86bff',
+    scale: 2,        // el doble de la clásica, incluye el radio de colisión
+    scoreMult: 2,    // puntos x2
+    paths: [
+      { pts: [[40, 0], [-24, -18], [-14, 0], [-24, 18]], closed: true },
+    ],
+    flame: { x: -16, half: 8, color: 'rgba(168, 107, 255, 0.85)' },
+  },
 ];
+
+const BASE_SHIP_RADIUS = 12;   // radio de la clásica; se multiplica por skin.scale
 
 let currentSkinId = loadSkin();
 let skinToast = 0;   // s restantes del aviso resaltado en el HUD
@@ -152,6 +167,16 @@ function saveSkin() {
 
 function getSkin() {
   return SKINS.find(s => s.id === currentSkinId) || SKINS[0];
+}
+
+// Escala visual (y de hitbox) de la skin activa: 1 salvo skins grandes
+function skinScale() {
+  return getSkin().scale || 1;
+}
+
+// Multiplicador de puntos de la skin activa: 1 salvo las de bonificación
+function scoreMultiplier() {
+  return getSkin().scoreMult || 1;
 }
 
 function cycleSkin() {
@@ -307,7 +332,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = BASE_SHIP_RADIUS * skinScale();
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -348,7 +373,7 @@ class Ship {
   tryShoot() {
     if (this.shootCooldown > 0 || this.dead) return [];
     this.shootCooldown = 0.2;
-    const NOSE = 21;
+    const NOSE = 21 * skinScale();
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
 
@@ -373,7 +398,7 @@ class Ship {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle);
-      drawShipShape(skin);
+      drawShipShape(skin, skinScale());
 
       // Llama del propulsor
       if (this.thrusting && Math.random() > 0.35) {
@@ -577,7 +602,7 @@ function explode(x, y, count = 8) {
 // puntos, explosión, posible drop y división. Devuelve los fragmentos.
 function destroyAsteroid(a) {
   a.dead = true;
-  score += a.points;
+  score += a.points * scoreMultiplier();
   explode(a.x, a.y, a.size * 5);
   if (Math.random() < POWERUP_DROP_CHANCE)
     powerups.push(new PowerUp(a.x, a.y, POWERUP_KINDS[randInt(0, POWERUP_KINDS.length - 1)]));
@@ -690,7 +715,7 @@ function drawLifeIcon(x, y) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-Math.PI / 2);
-  drawShipShape(getSkin(), 0.5, 1.2);
+  drawShipShape(getSkin(), 0.5 * skinScale(), 1.2);
   ctx.restore();
 }
 
@@ -716,7 +741,15 @@ function drawHUD() {
   ctx.font = '15px monospace';
 
   ctx.textAlign = 'left';
-  ctx.fillText(`SCORE  ${score}`, 14, 26);
+  const scoreLabel = `SCORE  ${score}`;
+  ctx.fillText(scoreLabel, 14, 26);
+  if (scoreMultiplier() > 1) {
+    // Bonus de puntos de la skin activa
+    const wx = 14 + ctx.measureText(scoreLabel).width + 8;
+    ctx.fillStyle = getSkin().color;
+    ctx.fillText(`x${scoreMultiplier()}`, wx, 26);
+    ctx.fillStyle = '#fff';
+  }
 
   ctx.textAlign = 'center';
   ctx.fillText(`NIVEL ${level}`, W / 2, 26);
