@@ -72,9 +72,9 @@ const SHOOTING_STAR_POINTS   = 200;
 // ── Power-ups ─────────────────────────────────────────────────────────────────
 const POWERUP_DROP_CHANCE  = 0.15;
 const POWERUP_LIFETIME     = 10;  // s en el campo antes de desaparecer
-const POWERUP_DURATION     = 5;   // s de efecto de velocidad / triple disparo
+const POWERUP_DURATION     = 5;   // s de efecto del disparo triple
+const RAPID_FIRE_DURATION  = 15;  // s de disparo rápido
 const POWERUP_RADIUS       = 10;
-const SPEED_MULTIPLIER     = 2;   // propulsión x2 durante el efecto
 const POWERUP_KINDS        = ['speed', 'triple', 'shield']; // 1/3 cada uno al soltar un drop
 const SHIELD_DURATION      = 6;   // s de efecto del escudo al recogerlo
 const SHIELD_RADIUS        = 24;  // radio de la burbuja (y su colisión)
@@ -332,7 +332,7 @@ class Ship {
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
-    this.speedBoost    = 0;
+    this.rapidFire     = 0;
     this.tripleShot    = 0;
     this.shield        = 0;
     this.dead          = false;
@@ -342,22 +342,20 @@ class Ship {
     if (this.dead) return;
     if (this.invincible    > 0) this.invincible    -= dt;
     if (this.shootCooldown > 0) this.shootCooldown -= dt;
-    if (this.speedBoost    > 0) this.speedBoost    -= dt;
+    if (this.rapidFire     > 0) this.rapidFire     -= dt;
     if (this.tripleShot    > 0) this.tripleShot    -= dt;
     if (this.shield        > 0) this.shield        -= dt;
 
     const ROT   = 3.5;   // rad/s
     const THRUST = 260;  // px/s²
     const DRAG   = 0.987;
-    const boost  = this.speedBoost > 0 ? SPEED_MULTIPLIER : 1;
-
     if (keys['ArrowLeft'])  this.angle -= ROT * dt;
     if (keys['ArrowRight']) this.angle += ROT * dt;
 
     this.thrusting = !!keys['ArrowUp'];
     if (this.thrusting) {
-      this.vx += Math.cos(this.angle) * THRUST * boost * dt;
-      this.vy += Math.sin(this.angle) * THRUST * boost * dt;
+      this.vx += Math.cos(this.angle) * THRUST * dt;
+      this.vy += Math.sin(this.angle) * THRUST * dt;
     }
 
     this.vx *= DRAG;
@@ -367,8 +365,8 @@ class Ship {
   }
 
   tryShoot() {
-    if (this.shootCooldown > 0 || this.dead) return [];
-    this.shootCooldown = 0.2;
+    if (this.dead || (this.rapidFire <= 0 && this.shootCooldown > 0)) return [];
+    this.shootCooldown = this.rapidFire > 0 ? 0 : 0.2;
     const NOSE = 21 * getSkinScale();
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
@@ -698,7 +696,7 @@ function update(dt) {
   for (const p of powerups) {
     if (dist(ship, p) < ship.radius + p.radius) {
       p.dead = true;
-      if (p.type === 'speed')       ship.speedBoost = POWERUP_DURATION;
+      if (p.type === 'speed')       ship.rapidFire = RAPID_FIRE_DURATION;
       else if (p.type === 'triple') ship.tripleShot = POWERUP_DURATION;
       else                          ship.shield     = SHIELD_DURATION;
       explode(p.x, p.y, 5);
@@ -752,8 +750,8 @@ function drawHUD() {
     drawLifeIcon(W - 16 - i * 22, 18);
 
   let statusY = 48;
-  if (ship.speedBoost > 0) {
-    drawStatus('VELOCIDAD', ship.speedBoost, POWERUP_DURATION, statusY, POWERUP_COLORS.speed);
+  if (ship.rapidFire > 0) {
+    drawStatus('DISPARO RÁPIDO', ship.rapidFire, RAPID_FIRE_DURATION, statusY, POWERUP_COLORS.speed);
     statusY += 26;
   }
   if (ship.tripleShot > 0) {
